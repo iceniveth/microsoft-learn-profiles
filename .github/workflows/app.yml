@@ -1,0 +1,49 @@
+name: Build and deploy site
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+# Allow this job to clone the repo and create a page deployment
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+jobs:
+  build:
+    timeout-minutes: 10
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - name: Install, build, and upload your site
+      uses: withastro/action@v2
+    # - uses: actions/setup-node@v4
+    #   with:
+    #     node-version: lts/*
+    # - name: Install Playwright Browsers
+    #   run: npx playwright install chromium --with-deps
+    # - name: Install dependencies
+    #   run: npm ci
+    # - name: Run Scraper
+    #   run: npm run scrape
+    # - name: Build app
+    #   run: npm run build
+    # - uses: actions/upload-artifact@v1
+    #   with:
+    #     name: github-pages
+    #     path: dist/
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      # - name: Download artifact
+      #   uses: actions/download-artifact@v4
+      #   with:
+      #     name: github-pages
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

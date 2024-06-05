@@ -1,7 +1,9 @@
-import { chromium, Page } from "playwright";
+import type { Page } from "playwright";
+import { chromium } from "playwright";
+import { promises as fs } from "fs";
 
 const browser = await chromium.launch({
-  headless: false,
+  headless: true,
 });
 
 try {
@@ -24,7 +26,12 @@ try {
     profiles.push(await extractProfile(page, profileLink));
   }
 
-  console.log(JSON.stringify(profiles, null, 2));
+  await fs.writeFile(
+    "./src/data/profiles.json",
+    JSON.stringify(profiles, null, 2)
+  );
+
+  console.log('scraped profiles')
 } finally {
   await browser.close();
 }
@@ -58,7 +65,7 @@ async function extractProfile(page: Page, profileLink: string) {
 
       return {
         title: titleText?.replaceAll("\t", "").replaceAll("\n", "").trim(),
-        completedAt: completedAtText.trim(),
+        completedAt: completedAtText?.trim(),
       };
     })
   );

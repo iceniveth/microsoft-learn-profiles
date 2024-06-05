@@ -1,20 +1,23 @@
 {
-  "name": "microsoft-learn-profiles",
-  "version": "1.0.0",
-  "description": "",
+  "name": "dark-doppler",
   "type": "module",
-  "main": "index.js",
+  "version": "0.0.1",
   "scripts": {
+    "dev": "astro dev",
+    "start": "astro dev",
+    "build": "astro check && astro build",
+    "preview": "astro preview",
+    "astro": "astro",
     "scrape": "tsx scrapeMicrosoftProfiles.ts"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
+  "dependencies": {
+    "@astrojs/check": "^0.7.0",
+    "astro": "^4.9.3",
+    "playwright": "^1.44.1",
+    "typescript": "^5.4.5"
+  },
   "devDependencies": {
     "@types/node": "^20.14.2",
     "tsx": "^4.11.2"
-  },
-  "dependencies": {
-    "playwright": "^1.44.1"
   }
 }
