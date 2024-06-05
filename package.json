@@ -1,0 +1,20 @@
+{
+  "name": "microsoft-learn-profiles",
+  "version": "1.0.0",
+  "description": "",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "scrape": "tsx scrapeMicrosoftProfiles.ts"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@types/node": "^20.14.2",
+    "tsx": "^4.11.2"
+  },
+  "dependencies": {
+    "playwright": "^1.44.1"
+  }
+}
