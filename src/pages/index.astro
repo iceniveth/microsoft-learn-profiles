@@ -1,7 +1,80 @@
 ---
 import Layout from "../layouts/Layout.astro";
 import Card from "../components/Card.astro";
-import profiles from "../data/profiles.json";
+import type { Page } from "playwright";
+import { chromium } from "playwright";
+
+type Module = { title: string | undefined; completedAt: string | undefined };
+type Profile = { name: string; modules: Module[] };
+
+let profiles: Profile[] = [];
+
+const browser = await chromium.launch({
+  headless: true,
+});
+
+try {
+  const context = await browser.newContext();
+  const page = await context.newPage();
+
+  const profileLinks = [
+    "https://learn.microsoft.com/en-us/users/ayeshadaniellesiroy-4510/",
+    "https://learn.microsoft.com/en-us/users/elycisjasa-5500/",
+    "https://learn.microsoft.com/en-us/users/mayolivares-6259/",
+    "https://learn.microsoft.com/en-us/users/sachikogubat-9415/",
+    "https://learn.microsoft.com/en-us/users/teofyrabanes-5675/",
+    "https://learn.microsoft.com/en-us/users/kentan-0805/",
+    "https://learn.microsoft.com/en-us/users/markjescemmangalay-7586/",
+  ];
+
+  for (const profileLink of profileLinks) {
+    profiles.push(await extractProfile(page, profileLink));
+  }
+
+  console.log("scraped profiles");
+} finally {
+  await browser.close();
+}
+
+async function extractProfile(page: Page, profileLink: string) {
+  await page.goto(profileLink);
+
+  await page.waitForResponse((response) =>
+    response.url().includes("https://learn.microsoft.com/api/profiles/")
+  );
+
+  const [name] = await page.locator(".hero-content h1").allTextContents();
+
+  await page.waitForResponse((response) =>
+    response
+      .url()
+      .includes("https://learn.microsoft.com/api/achievements/user/")
+  );
+
+  const modulesNodes = await page.locator("#modules-section ol li .card").all();
+
+  const modules = await Promise.all(
+    modulesNodes.map(async (module) => {
+      const titleText = await module
+        .locator(".card-content-title")
+        .textContent();
+
+      const completedAtText = await module
+        .locator(".card-content-metadata time")
+        .textContent();
+
+      return {
+        title: titleText?.replaceAll("\t", "").replaceAll("\n", "").trim(),
+        completedAt: completedAtText?.trim(),
+      };
+    })
+  );
+
+  return {
+    name,
+    modules,
+  };
+}
 ---
 
 <Layout title="Welcome to Astro.">
@@ -45,20 +118,16 @@ import profiles from "../data/profiles.json";
               {profile.modules.map((module) => (
                 <Card
                   href="#"
-                  title={module.title}
-                  body={module.completedAt}
+                  title={module.title ?? ""}
+                  body={module.completedAt ?? ""}
                 />
               ))}
             </ul>
           ) : (
-            <Card
-              href="#"
-              title="I don't have any progress 😭"
-              body=""
-            />
+            <Card href="#" title="I don't have any progress 😭" body="" />
           )}
 
-					<br />
+          <br />
         </>
       ))
     }
