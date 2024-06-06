@@ -1,9 +1,13 @@
 name: Build and deploy site
+
 on:
   push:
     branches: [ main, master ]
   pull_request:
     branches: [ main, master ]
+  schedule:
+    - cron: "10 16 * * *" # Run every day at 16:10 UTC or 12:10 AM PH Time
+
 # Allow this job to clone the repo and create a page deployment
 permissions:
   contents: read
@@ -13,11 +17,13 @@ jobs:
   build:
     timeout-minutes: 10
     runs-on: ubuntu-latest
+    
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: lts/*
+          cache: 'npm'
       - name: Install Playwright Browsers
         run: npx playwright install chromium --with-deps
       - name: Install, build, and upload your site
