@@ -6,7 +6,7 @@ on:
   pull_request:
     branches: [ main, master ]
   schedule:
-    - cron: "10 16 * * *" # Run every day at 16:10 UTC or 12:10 AM PH Time
+    - cron: "10 0,16 * * *" # Run every day at 16:10 UTC or 12:10 AM PH Time
 
 # Allow this job to clone the repo and create a page deployment
 permissions:
