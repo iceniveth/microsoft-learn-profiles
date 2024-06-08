@@ -1,83 +1,43 @@
 ---
 import Layout from "../layouts/Layout.astro";
 import Card from "../components/Card.astro";
-import type { Page } from "playwright";
-import { chromium } from "playwright";
+import extractUsernameFromUrl from "../lib/profiles/extractUsernameFromUrl";
+import getProfile from "../lib/profiles/getProfile";
+import getAchievements from "../lib/profiles/getAchievements";
+import { format } from "date-fns";
 
-type Module = { title: string | undefined; completedAt: string | undefined };
-type Profile = { name: string; modules: Module[] };
+const profileLinks = [
+  "https://learn.microsoft.com/en-us/users/ariessako-1935/",
+  "https://learn.microsoft.com/en-us/users/ayeshadaniellesiroy-4510/",
+  "https://learn.microsoft.com/en-us/users/elycisjasa-5500/",
+  "https://learn.microsoft.com/en-us/users/kentan-0805/",
+  "https://learn.microsoft.com/en-us/users/markjescemmangalay-7586/",
+  "https://learn.microsoft.com/en-us/users/mayolivares-6259/",
+  "https://learn.microsoft.com/en-us/users/sachikogubat-9415/",
+  "https://learn.microsoft.com/en-us/users/teofyrabanes-5675/",
+];
 
-let profiles: Profile[] = [];
+let profiles = await Promise.all(
+  profileLinks.map(async (link) => {
+    const username = extractUsernameFromUrl(link);
+    const profile = await getProfile(username);
+    const achievements = await getAchievements(profile.userId);
+    return {
+      ...profile,
+      achievements,
+    };
+  })
+);
 
-const browser = await chromium.launch({
-  headless: true,
+// Sort by who has the least achievement
+profiles = profiles = profiles.sort((a, b) => {
+  const aDate = a.achievements.modules[0]?.grantedOn ?? new Date(1990, 1, 1);
+  const bDate = b.achievements.modules[0]?.grantedOn ?? new Date(1990, 1, 1);
+  return Number(aDate) - Number(bDate);
 });
-
-try {
-  const context = await browser.newContext();
-  const page = await context.newPage();
-
-  const profileLinks = [
-    "https://learn.microsoft.com/en-us/users/ayeshadaniellesiroy-4510/",
-    "https://learn.microsoft.com/en-us/users/elycisjasa-5500/",
-    "https://learn.microsoft.com/en-us/users/mayolivares-6259/",
-    "https://learn.microsoft.com/en-us/users/sachikogubat-9415/",
-    "https://learn.microsoft.com/en-us/users/teofyrabanes-5675/",
-    "https://learn.microsoft.com/en-us/users/kentan-0805/",
-    "https://learn.microsoft.com/en-us/users/markjescemmangalay-7586/",
-  ];
-
-  for (const profileLink of profileLinks) {
-    profiles.push(await extractProfile(page, profileLink));
-  }
-
-  console.log("scraped profiles");
-} finally {
-  await browser.close();
-}
-
-async function extractProfile(page: Page, profileLink: string) {
-  await page.goto(profileLink);
-
-  await page.waitForResponse((response) =>
-    response.url().includes("https://learn.microsoft.com/api/profiles/")
-  );
-
-  const [name] = await page.locator(".hero-content h1").allTextContents();
-
-  await page.waitForResponse((response) =>
-    response
-      .url()
-      .includes("https://learn.microsoft.com/api/achievements/user/")
-  );
-
-  const modulesNodes = await page.locator("#modules-section ol li .card").all();
-
-  const modules = await Promise.all(
-    modulesNodes.map(async (module) => {
-      const titleText = await module
-        .locator(".card-content-title")
-        .textContent();
-
-      const completedAtText = await module
-        .locator(".card-content-metadata time")
-        .textContent();
-
-      return {
-        title: titleText?.replaceAll("\t", "").replaceAll("\n", "").trim(),
-        completedAt: completedAtText?.trim(),
-      };
-    })
-  );
-
-  return {
-    name,
-    modules,
-  };
-}
 ---
 
-<Layout title="Welcome to Astro.">
+<Layout title="MS Learn Profiles">
   <main>
     <svg
       class="astro-a"
@@ -111,20 +71,29 @@ async function extractProfile(page: Page, profileLink: string) {
     {
       profiles.map((profile) => (
         <>
-          <p class="instructions">{profile.name}</p>
+          <div class="instructions" style="display: flex; gap: 16px">
+            <a
+              href={`https://learn.microsoft.com/en-us/users/${profile.userName}`}
+              style="text-decoration: none; color: white; flex-grow: 1"
+            >
+              {profile.displayName}
+            </a>
+            <span>{profile.achievements.modules.length} Badges</span>
+            <span>{profile.achievements.learningPaths.length} Trophies</span>
+          </div>
 
-          {profile.modules.some((m) => m) ? (
+          {profile.achievements.modules.some((m) => m) ? (
             <ul role="list" class="link-card-grid">
-              {profile.modules.map((module) => (
+              {profile.achievements.modules.map((module) => (
                 <Card
-                  href="#"
-                  title={module.title ?? ""}
-                  body={module.completedAt ?? ""}
+                  title={module.title}
+                  body={format(module.grantedOn, "MM/dd/yyyy")}
+                  imageUrl={module.imageUrl}
                 />
               ))}
             </ul>
           ) : (
-            <Card href="#" title="I don't have any progress 😭" body="" />
+            <Card title="I don't have any progress 😭" body="" />
           )}
 
           <br />
