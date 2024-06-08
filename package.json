@@ -12,6 +12,7 @@
   "dependencies": {
     "@astrojs/check": "^0.7.0",
     "astro": "^4.9.3",
+    "date-fns": "^3.6.0",
     "playwright": "^1.44.1",
     "typescript": "^5.4.5"
   },
