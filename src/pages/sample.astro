@@ -1,0 +1,29 @@
+---
+
+---
+
+<h2>Sample</h2>
+
+<button id="clickme">Click me</button>
+
+<script>
+  let onClick = () => {
+    let abortController = new AbortController();
+
+    return async () => {
+      if (abortController) {
+        if (!abortController.signal.aborted) {
+          abortController.abort();
+        }
+      }
+      abortController = new AbortController();
+      const response = await fetch("/api/random", {
+        signal: abortController.signal,
+      });
+      const data = await response.json();
+      console.log(data);
+    };
+  };
+
+  document.getElementById("clickme")?.addEventListener("click", onClick());
+</script>
