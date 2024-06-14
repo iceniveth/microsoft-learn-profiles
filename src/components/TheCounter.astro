@@ -1,0 +1,21 @@
+---
+
+---
+
+<div>
+  <h2>TheCounter</h2>
+  <h3>Counter <span id="counter">0</span></h3>
+  <button name="increment" onclick="onClick">Increment</button>
+</div>
+
+<script>
+  let count = 0;
+  const counterElement = document.getElementById("counter");
+  const incrementButton = document.querySelector('button[name="increment"]');
+
+  incrementButton?.addEventListener("click", function onClick() {
+    count++;
+    if (counterElement == null) return;
+    counterElement!.textContent = count.toString();
+  });
+</script>

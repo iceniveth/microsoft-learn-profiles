@@ -4,8 +4,13 @@
     "moduleResolution": "NodeNext",
     "target": "ES2022",
     "skipLibCheck": true,
-    "esModuleInterop": true
+    "esModuleInterop": true,
+    "jsx": "react-jsx",
+    "jsxImportSource": "react"
   },
-  "exclude": ["node_modules", ".github"],
+  "exclude": [
+    "node_modules",
+    ".github"
+  ],
   "extends": "astro/tsconfigs/strict"
 }
